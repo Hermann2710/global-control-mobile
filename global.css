@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Background & Foreground */
+    --background: 210 20% 98%; /* #F8F9FA */
+    --foreground: 218 26% 22%; /* #2A3547 */
+
+    /* Card & Popover */
+    --card: 0 0% 100%;
+    --card-foreground: 218 26% 22%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 218 26% 22%;
+
+    /* Primary (Le Vert #41A745) */
+    --primary: 122 44% 46%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary (Le Bleu #49BEFF) */
+    --secondary: 201 100% 64%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Muted (Gris 200 #EAEFF4) */
+    --muted: 210 30% 94%;
+    --muted-foreground: 217 22% 58%; /* Gris 400 */
+
+    /* Accent */
+    --accent: 210 30% 94%;
+    --accent-foreground: 122 44% 46%;
+
+    /* Destructive (Le Error #FA896B) */
+    --destructive: 13 93% 70%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders & Inputs */
+    --border: 210 24% 92%; /* #e5eaef */
+    --input: 210 24% 92%;
+    --ring: 122 44% 46%; /* Ring sur le vert primary */
+
+    --radius: 0.625rem;
+  }
+
+  .dark:root {
+    /* Background & Foreground Dark */
+    --background: 213 11% 13%; /* #1C1F23 */
+    --foreground: 210 31% 94%; /* #EAEFF4 */
+
+    --card: 213 11% 13%;
+    --card-foreground: 210 31% 94%;
+    --popover: 213 11% 13%;
+    --popover-foreground: 210 31% 94%;
+
+    /* Primary reste le même vert */
+    --primary: 122 44% 46%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary reste le même bleu */
+    --secondary: 201 100% 64%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Muted Dark (Gris 100 en Dark #333F55) */
+    --muted: 218 25% 27%;
+    --muted-foreground: 217 22% 58%;
+
+    /* Accent Dark */
+    --accent: 218 25% 27%;
+    --accent-foreground: 210 31% 94%;
+
+    /* Destructive */
+    --destructive: 13 93% 70%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders & Inputs Dark */
+    --border: 218 25% 27%; /* #333F55 */
+    --input: 218 25% 27%;
+    --ring: 122 44% 46%;
+  }
+}
