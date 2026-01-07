@@ -1,5 +1,13 @@
-import React, { useRef } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { useColorScheme } from "nativewind";
+import React, { useEffect, useRef } from "react";
+import {
+  Animated,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 interface OTPInputProps {
   value: string;
@@ -14,17 +22,51 @@ export function OTPInput({
   length = 6,
   error,
 }: OTPInputProps) {
+  const { colorScheme } = useColorScheme();
   const inputRef = useRef<TextInput>(null);
+  const isDark = colorScheme === "dark";
+
+  // Animation d'opacité pour le curseur
+  const cursorOpacity = useRef(new Animated.Value(1)).current;
 
   const codeChars = Array.from({ length }, (_, i) => i);
   const safeValue = value || "";
 
-  const handlePress = () => {
-    inputRef.current?.focus();
+  // Logique du clignotement
+  useEffect(() => {
+    const blink = Animated.loop(
+      Animated.sequence([
+        Animated.timing(cursorOpacity, {
+          toValue: 0,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(cursorOpacity, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    blink.start();
+    return () => blink.stop();
+  }, []);
+
+  const colors = {
+    background: isDark ? "#1C1F23" : "#F8F9FA",
+    border: isDark ? "#333F55" : "#E5EAEF",
+    primary: "#41A745",
+    destructive: "#FA896B",
+    text: isDark ? "#EAEFF4" : "#2A3547",
+    placeholder: "#7C8FAC",
   };
 
   return (
-    <Pressable onPress={handlePress} style={styles.container}>
+    <Pressable
+      onPress={() => inputRef.current?.focus()}
+      className="flex-row justify-between w-full"
+    >
       {codeChars.map((index) => {
         const char = safeValue[index];
         const isFocused = safeValue.length === index;
@@ -32,17 +74,33 @@ export function OTPInput({
 
         return (
           <View
-            key={index}
+            key={index.toString()}
             style={[
               styles.box,
-              isFocused && styles.boxFocused,
-              isActive && styles.boxActive,
-              error && styles.boxError,
+              {
+                backgroundColor: colors.background,
+                borderColor: colors.border,
+              },
+              isFocused && { borderColor: colors.primary, borderWidth: 2 },
+              isActive && { borderColor: colors.primary + "80" },
+              error && { borderColor: colors.destructive },
             ]}
           >
-            <Text style={styles.text}>{char || ""}</Text>
+            <Text style={[styles.text, { color: colors.text }]}>
+              {char || ""}
+            </Text>
 
-            {isFocused && <View style={styles.cursor} />}
+            {isFocused && (
+              <Animated.View
+                style={[
+                  styles.cursor,
+                  {
+                    backgroundColor: colors.primary,
+                    opacity: cursorOpacity,
+                  },
+                ]}
+              />
+            )}
           </View>
         );
       })}
@@ -72,38 +130,20 @@ const styles = StyleSheet.create({
   box: {
     width: 48,
     height: 56,
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#ffffff",
-    borderColor: "#e2e8f0",
-  },
-  boxFocused: {
-    borderColor: "#000000",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  boxActive: {
-    borderColor: "#00000080",
-  },
-  boxError: {
-    borderColor: "#ef4444",
   },
   text: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#000000",
   },
   cursor: {
     position: "absolute",
     bottom: 12,
-    width: 24,
+    width: 20,
     height: 2,
-    backgroundColor: "#000000",
     borderRadius: 99,
   },
   hiddenInput: {

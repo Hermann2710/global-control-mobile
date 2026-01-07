@@ -17,14 +17,23 @@ export const forgotPasswordSchema = z.object({
 
 export type ForgotPasswordData = z.infer<typeof forgotPasswordSchema>;
 
+export const verifyOtpSchema = z.object({
+  code: z.string().length(6, "Le code doit contenir 6 chiffres"),
+  email: z.email(),
+});
+
+export type VerifyOtptype = z.infer<typeof verifyOtpSchema>;
+
 export const authData = z.object({
   access_token: z.string(),
   user: userSchema,
 });
 
-export const verifyOtpSchema = z.object({
-  otp: z.string().length(6, "Le code doit contenir 6 chiffres"),
-  email: z.email(),
+export const sendOtpData = z.object({
+  message: z.string(),
 });
 
-export type VerifyOtpData = z.infer<typeof verifyOtpSchema>;
+export const verifyOtpData = z.object({
+  message: z.string(),
+  code: z.string(),
+});

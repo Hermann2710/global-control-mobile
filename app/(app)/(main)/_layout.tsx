@@ -1,16 +1,14 @@
 import { Stack } from "expo-router";
 import React from "react";
 
-const AuthLayout = () => {
+const MainLayout = () => {
   return (
     <Stack
       screenOptions={{
         headerShown: false,
-        animation: "fade",
-        contentStyle: { backgroundColor: "transparent" },
       }}
     />
   );
 };
 
-export default AuthLayout;
+export default MainLayout;

@@ -1,7 +1,14 @@
 import { cn } from "@/lib/utils";
-import { ComponentProps } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import { Platform, TextInput, View, type TextInputProps } from "react-native";
+import {
+  Platform,
+  TextInput,
+  TouchableOpacity,
+  View,
+  type TextInputProps,
+} from "react-native";
 import { Text } from "./text";
 
 function Input({
@@ -39,14 +46,18 @@ export { Input };
 export function FormInput({
   name,
   label,
+  secureTextEntry,
   ...props
-}: ComponentProps<typeof Input> & { name: string; label?: string }) {
+}: React.ComponentProps<typeof Input> & { name: string; label?: string }) {
   const { control } = useFormContext();
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+
+  const isPasswordInput = secureTextEntry;
 
   return (
-    <View className="gap-1.5 w-full">
+    <View className="gap-2 w-full">
       {label && (
-        <Text className="text-sm font-medium text-muted-foreground ml-1">
+        <Text className="text-sm sm:text-lg font-medium text-muted-foreground ml-1">
           {label}
         </Text>
       )}
@@ -59,13 +70,34 @@ export function FormInput({
           fieldState: { error },
         }) => (
           <View>
-            <Input
-              {...props}
-              onBlur={onBlur}
-              onChangeText={onChange}
-              value={value}
-              className={cn(error && "border-destructive", props.className)}
-            />
+            <View className="relative justify-center">
+              <Input
+                {...props}
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+                secureTextEntry={isPasswordInput && !isPasswordVisible}
+                className={cn(
+                  error && "border-destructive",
+                  isPasswordInput && "pr-12",
+                  props.className
+                )}
+              />
+
+              {isPasswordInput && (
+                <TouchableOpacity
+                  className="absolute right-4 active:opacity-50"
+                  onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                >
+                  <Ionicons
+                    name={isPasswordVisible ? "eye-off-outline" : "eye-outline"}
+                    size={22}
+                    color="#6b7280"
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
+
             {error && (
               <Text className="text-destructive text-xs mt-1 ml-1">
                 {error.message}
