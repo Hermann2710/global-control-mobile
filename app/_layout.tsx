@@ -1,6 +1,7 @@
 import { AuthProvider, useAuth } from "@/contexts/auth-context";
 import "../global.css";
 
+import { UploadProvider } from "@/contexts/upload-context";
 import { NAV_THEME } from "@/lib/theme";
 import { ThemeProvider } from "@react-navigation/native";
 import { PortalHost } from "@rn-primitives/portal";
@@ -8,7 +9,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
-import { ActivityIndicator, useColorScheme, View } from "react-native";
+import { useColorScheme } from "react-native";
 import Toast from "react-native-toast-message";
 
 SplashScreen.preventAutoHideAsync();
@@ -23,7 +24,7 @@ function RootLayoutNav() {
     }
   }, [isLoading]);
 
-  if (isLoading) {
+  /* if (isLoading) {
     return (
       <View
         style={{
@@ -39,7 +40,7 @@ function RootLayoutNav() {
         />
       </View>
     );
-  }
+  } */
 
   return (
     <ThemeProvider value={NAV_THEME[colorScheme]}>
@@ -54,7 +55,9 @@ function RootLayoutNav() {
 export default function AppLayout() {
   return (
     <AuthProvider>
-      <RootLayoutNav />
+      <UploadProvider>
+        <RootLayoutNav />
+      </UploadProvider>
     </AuthProvider>
   );
 }

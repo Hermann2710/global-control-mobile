@@ -1,11 +1,14 @@
+import { useIsOnline } from "@/hooks/use-is-online";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { DrawerHeaderProps } from "@react-navigation/drawer";
 import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ThemeToggle } from "../shared/theme-picker";
 
 const HeaderBar = ({ navigation, options }: DrawerHeaderProps) => {
   const insets = useSafeAreaInsets();
+  const isOnline = useIsOnline();
 
   return (
     <View
@@ -20,17 +23,18 @@ const HeaderBar = ({ navigation, options }: DrawerHeaderProps) => {
           <MaterialCommunityIcons name="menu" size={28} color="#6F4E37" />
         </TouchableOpacity>
 
-        <Text className="text-xl font-bold text-foreground">
-          {options.title ?? "Global Control"}
-        </Text>
+        {isOnline ? (
+          <Text className="text-xl font-bold text-foreground">
+            {options.title ?? "Global Control"}
+          </Text>
+        ) : (
+          <View className="flex flex-row gap-2 items-center justify-center">
+            <Text className="text-xl font-bold text-foreground">Connexion</Text>
+            <ActivityIndicator />
+          </View>
+        )}
 
-        <TouchableOpacity className="p-2">
-          <MaterialCommunityIcons
-            name="account-circle-outline"
-            size={28}
-            color="#6F4E37"
-          />
-        </TouchableOpacity>
+        <ThemeToggle />
       </View>
     </View>
   );

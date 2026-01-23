@@ -1,12 +1,11 @@
 import axios from "axios";
 import { authStorage } from "./auth-storage";
+import { constants } from "./constants";
+import { createImageFormData } from "./upload";
 
 const api = axios.create({
-  baseURL: "https://api.globalcontrolsarl.theplug-group.com/",
+  baseURL: constants.api.baseUrl,
   timeout: 10000,
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 api.interceptors.request.use(async (config) => {
@@ -18,3 +17,9 @@ api.interceptors.request.use(async (config) => {
 });
 
 export default api;
+
+export const uploadImage = async (uri: string) => {
+  const formData = createImageFormData(uri);
+  const response = await api.post("/upload", formData);
+  return response.data;
+};

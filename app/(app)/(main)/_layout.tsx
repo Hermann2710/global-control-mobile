@@ -1,13 +1,19 @@
+import CircleBackground from "@/components/shared/circle-background";
 import { Stack } from "expo-router";
-import React from "react";
 
 const MainLayout = () => {
+
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-      }}
-    />
+
+    <CircleBackground className="p-6">
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: "transparent" },
+          animation: "none",
+        }}
+      />
+    </CircleBackground>
   );
 };
 

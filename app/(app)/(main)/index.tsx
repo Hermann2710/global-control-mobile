@@ -1,11 +1,10 @@
-import CircleBackground from "@/components/shared/circle-background";
 import { SelectionCard } from "@/components/shared/selection-card";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { useAuth } from "@/contexts/auth-context";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import { ScrollView, View, useWindowDimensions } from "react-native";
+import { View, useWindowDimensions } from "react-native";
 
 const MainScreen = () => {
   const { user } = useAuth();
@@ -17,7 +16,7 @@ const MainScreen = () => {
 
   const handleNavigate = () => {
     router.push({
-      pathname: "/(app)/(main)/numero-lot",
+      pathname: "/(app)/(main)/identification",
       params: {
         productType: selected,
       },
@@ -25,56 +24,45 @@ const MainScreen = () => {
   };
 
   return (
-    <CircleBackground>
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{
-          paddingHorizontal: width > 400 ? 32 : 24,
-          paddingTop: 40,
-          paddingBottom: 120,
-        }}
-        showsVerticalScrollIndicator={false}
+    <>
+      <View className={`${headerMargin}`}>
+        <Text className="text-3xl sm:text-5xl font-bold tracking-tight text-foreground">
+          Bonjour 👋 {user?.lastName}
+        </Text>
+        <Text className="text-muted-foreground text-base sm:text-xl mt-2">
+          Sur quoi voulez-vous travailler aujourd&apos;hui ?
+        </Text>
+      </View>
+
+      <View
+        className={`gap-8 sm:gap-10 ${isLargeScreen ? "flex-row" : "flex-col"}`}
       >
-        <View className={`${headerMargin}`}>
-          <Text className="text-3xl sm:text-5xl font-bold tracking-tight text-foreground">
-            Bonjour 👋 {user?.lastName}
-          </Text>
-          <Text className="text-muted-foreground text-base sm:text-xl mt-2">
-            Sur quoi voulez-vous travailler aujourd'hui ?
-          </Text>
+        <View className={isLargeScreen ? "flex-1" : "w-full"}>
+          <SelectionCard
+            title="Cacao"
+            iconName="leaf"
+            iconColor="#d97706"
+            iconBgColor="bg-amber-500/20"
+            isSelected={selected === "cacao"}
+            onSelect={() => setSelected("cacao")}
+          />
         </View>
 
-        <View
-          className={`gap-8 sm:gap-10 ${isLargeScreen ? "flex-row" : "flex-col"}`}
-        >
-          <View className={isLargeScreen ? "flex-1" : "w-full"}>
-            <SelectionCard
-              title="Cacao"
-              iconName="leaf"
-              iconColor="#d97706"
-              iconBgColor="bg-amber-500/20"
-              isSelected={selected === "cacao"}
-              onSelect={() => setSelected("cacao")}
-            />
-          </View>
-
-          <View className={isLargeScreen ? "flex-1" : "w-full"}>
-            <SelectionCard
-              title="Café"
-              iconName="coffee-outline"
-              iconColor="#9a3412"
-              iconBgColor="bg-orange-500/20"
-              isSelected={selected === "cafe"}
-              onSelect={() => setSelected("cafe")}
-            />
-          </View>
+        <View className={isLargeScreen ? "flex-1" : "w-full"}>
+          <SelectionCard
+            title="Café"
+            iconName="coffee-outline"
+            iconColor="#9a3412"
+            iconBgColor="bg-orange-500/20"
+            isSelected={selected === "cafe"}
+            onSelect={() => setSelected("cafe")}
+          />
         </View>
-      </ScrollView>
+      </View>
 
       {/* Bouton fixe en bas */}
       {selected && (
         <View
-          style={{ paddingHorizontal: width > 400 ? 32 : 24 }}
           className="absolute bottom-10 left-0 right-0 items-center"
         >
           <Button
@@ -87,7 +75,7 @@ const MainScreen = () => {
           </Button>
         </View>
       )}
-    </CircleBackground>
+    </>
   );
 };
 

@@ -16,13 +16,19 @@ export default function NumeroLotForm({
   const form = useForm<NumeroLotType>({
     resolver: zodResolver(numeroLotSchema),
     defaultValues: {
-      numerotLot: "",
+      numeroLot: "",
       produitType: productType as "cacao" | "cafe",
     },
   });
 
   const handleSubmit = (data: NumeroLotType) => {
-    console.log("Form submitted:", data);
+    router.push({
+      pathname: "/(app)/(main)/choose-action",
+      params: {
+        numeroLot: data.numeroLot,
+        produitType: data.produitType,
+      },
+    });
   };
 
   return (
@@ -39,14 +45,14 @@ export default function NumeroLotForm({
             Numéro de lot
           </Text>
           <Text className="text-muted-foreground text-center mt-2 text-base">
-            Veuillez entrer l'identifiant pour commencer le suivi.
+            Veuillez entrer l&apos;identifiant pour commencer le suivi.
           </Text>
         </View>
 
         {/* Champ de saisie */}
         <View className="mb-8">
           <FormInput
-            name="numerotLot"
+            name="numeroLot"
             label="ID du lot"
             placeholder="Ex: LOT-2026-X"
             className="h-14 text-lg"
@@ -66,7 +72,15 @@ export default function NumeroLotForm({
 
           <Button
             variant="link"
-            onPress={() => router.push("/(app)/(main)/numero-lot")}
+            onPress={() =>
+              router.push({
+                pathname: "/(app)/(main)/choose-action",
+                params: {
+                  numeroLot: "",
+                  produitType: productType,
+                },
+              })
+            }
             className="h-10"
           >
             <Text className="text-muted-foreground font-medium">

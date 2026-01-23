@@ -69,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         router.replace("/(app)/(main)");
       }
     }
-  }, [token, isLoading, segments]);
+  }, [token, isLoading, segments, router]);
 
   const completeOnboarding = async () => {
     try {
@@ -125,6 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
       }
     } catch (error: any) {
+      console.log(error);
       Toast.show({
         type: "error",
         text1: "Erreur OTP",

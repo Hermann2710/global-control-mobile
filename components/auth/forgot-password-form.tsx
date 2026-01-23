@@ -34,7 +34,7 @@ const ForgotPasswordForm = () => {
         <View className="gap-6">
           <FormInput
             name="email"
-            label="Email de récupération"
+            label="Email"
             placeholder="votre@email.com"
             keyboardType="email-address"
             autoCapitalize="none"

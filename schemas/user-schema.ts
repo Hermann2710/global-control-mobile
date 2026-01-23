@@ -2,12 +2,12 @@ import { z } from "zod";
 
 export const userSchema = z.object({
   id: z.number(),
-  firstName: z.string(),
-  lastName: z.string(),
-  email: z.email(),
-  phoneNumber_1: z.string(),
+  firstName: z.string({ message: "Le prénom est requis" }).min(2, "Prénom trop court"),
+  lastName: z.string({ message: "Le nom est requis" }).min(2, "Nom trop court"),
+  email: z.string().email("Format d'email invalide"),
+  phoneNumber_1: z.string({ message: "Le numéro de téléphone est requis" }),
   phoneNumber_2: z.string().nullable().optional(),
-  ville: z.string(),
+  ville: z.string({ message: "La ville est requise" }),
   location: z.string().nullable(),
   profileImage: z.string().nullable(),
   role: z.string(),
