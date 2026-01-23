@@ -15,14 +15,13 @@ import { ActivityIndicator, Image, Text, View } from "react-native";
 function CustomDrawerContent(props: DrawerContentComponentProps) {
   const { user, signOut, isLoading } = useAuth();
 
-  if (!user) return null;
+  if (!user) return <></>
 
   return (
     <DrawerContentScrollView
       {...props}
       scrollEnabled={false}
       contentContainerStyle={{ flex: 1 }}
-      className="bg-background"
     >
       <View className="p-6 bg-primary/10 items-center border-b border-border mb-4 mx-4 rounded-2xl">
         <Image

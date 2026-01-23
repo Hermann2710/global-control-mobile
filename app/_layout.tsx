@@ -45,7 +45,7 @@ function RootLayoutNav() {
   return (
     <ThemeProvider value={NAV_THEME[colorScheme]}>
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
-      <Stack screenOptions={{ headerShown: false }} />
+      <Stack screenOptions={{ headerShown: false, animation: "none" }} />
       <PortalHost />
       <Toast position="bottom" />
     </ThemeProvider>

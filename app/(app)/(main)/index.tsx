@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { useAuth } from "@/contexts/auth-context";
 import { router } from "expo-router";
+import { Bean, Coffee } from "lucide-react-native"; // Remplacé Material par Lucide
 import React, { useState } from "react";
 import { View, useWindowDimensions } from "react-native";
 
@@ -15,6 +16,7 @@ const MainScreen = () => {
   const headerMargin = height < 700 ? "mb-6" : "mb-12";
 
   const handleNavigate = () => {
+    if (!selected) return;
     router.push({
       pathname: "/(app)/(main)/identification",
       params: {
@@ -24,7 +26,7 @@ const MainScreen = () => {
   };
 
   return (
-    <>
+    <View className="flex-1 px-4">
       <View className={`${headerMargin}`}>
         <Text className="text-3xl sm:text-5xl font-bold tracking-tight text-foreground">
           Bonjour 👋 {user?.lastName}
@@ -35,14 +37,15 @@ const MainScreen = () => {
       </View>
 
       <View
-        className={`gap-8 sm:gap-10 ${isLargeScreen ? "flex-row" : "flex-col"}`}
+        className={`gap-6 sm:gap-10 ${isLargeScreen ? "flex-row" : "flex-col"}`}
       >
         <View className={isLargeScreen ? "flex-1" : "w-full"}>
           <SelectionCard
             title="Cacao"
-            iconName="leaf"
-            iconColor="#d97706"
-            iconBgColor="bg-amber-500/20"
+            description="Lancer un contrôle qualité cacao"
+            Icon={Bean} // On passe le composant directement
+            iconColor="#d97706" // Ambre
+            iconBgColor="bg-amber-500/10"
             isSelected={selected === "cacao"}
             onSelect={() => setSelected("cacao")}
           />
@@ -51,31 +54,32 @@ const MainScreen = () => {
         <View className={isLargeScreen ? "flex-1" : "w-full"}>
           <SelectionCard
             title="Café"
-            iconName="coffee-outline"
-            iconColor="#9a3412"
-            iconBgColor="bg-orange-500/20"
+            description="Démarrer une analyse de café"
+            Icon={Coffee}
+            iconColor="#9a3412" // Orange brûlé / Marron
+            iconBgColor="bg-orange-500/10"
             isSelected={selected === "cafe"}
             onSelect={() => setSelected("cafe")}
           />
         </View>
       </View>
 
-      {/* Bouton fixe en bas */}
+      {/* Bouton de validation */}
       {selected && (
         <View
-          className="absolute bottom-10 left-0 right-0 items-center"
+          className="absolute bottom-10 left-4 right-4 items-center"
         >
           <Button
-            className="w-full max-w-md h-14 sm:h-20 rounded-2xl shadow-lg shadow-primary/30"
+            className="w-full max-w-md h-16 rounded-3xl shadow-xl bg-primary"
             onPress={handleNavigate}
           >
-            <Text className="text-primary-foreground font-bold text-lg sm:text-2xl italic">
-              Continuer
+            <Text className="text-primary-foreground font-bold text-xl uppercase tracking-widest">
+              Suivant
             </Text>
           </Button>
         </View>
       )}
-    </>
+    </View>
   );
 };
 

@@ -1,14 +1,15 @@
 import { Text } from "@/components/ui/text";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Check, ChevronRight, LucideIcon } from "lucide-react-native";
+import { useColorScheme } from "nativewind";
 import React from "react";
 import { Pressable, View } from "react-native";
 
 interface SelectionCardProps {
   title: string;
   description?: string;
-  iconName: keyof typeof MaterialCommunityIcons.glyphMap;
-  iconColor: string;
-  iconBgColor: string;
+  Icon: LucideIcon; // On passe directement le composant Lucide
+  iconColor: string; // Utilisé pour l'icône principale (ex: #3b82f6)
+  iconBgColor: string; // Classe Tailwind (ex: "bg-blue-500/10")
   isSelected: boolean;
   onSelect: () => void;
 }
@@ -16,30 +17,34 @@ interface SelectionCardProps {
 export const SelectionCard = ({
   title,
   description,
-  iconName,
+  Icon,
   iconColor,
   iconBgColor,
   isSelected,
   onSelect,
 }: SelectionCardProps) => {
+  const { colorScheme } = useColorScheme();
+
+  // Couleurs de secours en dur pour les icônes de contrôle
+  const checkColor = "#FFFFFF";
+  const chevronColor = colorScheme === 'dark' ? '#4b5563' : '#d1d5db'; // gray-600 ou gray-300
+
   return (
     <Pressable
       onPress={onSelect}
-      className={`relative overflow-hidden p-8 rounded-[32px] border-2 transition-all ${
-        isSelected
-          ? "bg-card border-primary shadow-md"
-          : "bg-card/50 border-transparent shadow-sm"
-      }`}
+      className={`relative overflow-hidden p-8 rounded-[32px] border-2 ${isSelected
+        ? "bg-card border-primary shadow-md"
+        : "bg-card/50 border-border/50 shadow-sm"
+        }`}
     >
       <View className="flex-row items-center justify-between">
         <View className="flex-1">
           <View
-            className={`self-start p-3 rounded-2xl mb-4 ${
-              isSelected ? iconBgColor : "bg-muted"
-            }`}
+            className={`self-start p-3 rounded-2xl mb-4 ${isSelected ? iconBgColor : "bg-muted"
+              }`}
           >
-            <MaterialCommunityIcons
-              name={iconName}
+            {/* L'icône principale utilise la couleur passée en prop */}
+            <Icon
               size={28}
               color={iconColor}
             />
@@ -51,17 +56,15 @@ export const SelectionCard = ({
         </View>
 
         <View
-          className={`w-8 h-8 rounded-full items-center justify-center ${
-            isSelected ? "bg-primary" : "bg-muted/50"
-          }`}
+          className={`w-8 h-8 rounded-full items-center justify-center ${isSelected ? "bg-primary" : "bg-muted/50"
+            }`}
         >
           {isSelected ? (
-            <MaterialCommunityIcons name="check" size={20} color="white" />
+            <Check size={20} color={checkColor} />
           ) : (
-            <MaterialCommunityIcons
-              name="chevron-right"
+            <ChevronRight
               size={20}
-              className="opacity-30"
+              color={chevronColor}
             />
           )}
         </View>

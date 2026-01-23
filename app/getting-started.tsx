@@ -1,14 +1,5 @@
-import { FontAwesome5 } from "@expo/vector-icons";
-import React, { useEffect } from "react";
+import React from "react";
 import { View, useWindowDimensions } from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import AuthLogo from "@/components/auth/logo";
@@ -16,56 +7,6 @@ import { CoffeeBackground } from "@/components/shared/coffe-background";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { useAuth } from "@/contexts/auth-context";
-
-const FloatingIcon = ({
-  name,
-  size,
-  top,
-  left,
-  right,
-  bottom,
-  delay = 0,
-  duration = 3000,
-}: any) => {
-  const translateY = useSharedValue(0);
-
-  useEffect(() => {
-    translateY.value = withDelay(
-      delay,
-      withRepeat(
-        withSequence(
-          withTiming(-15, { duration }),
-          withTiming(15, { duration })
-        ),
-        -1,
-        true
-      )
-    );
-  }, []);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-  }));
-
-  return (
-    <Animated.View
-      style={[
-        {
-          position: "absolute",
-          top,
-          left,
-          right,
-          bottom,
-          opacity: 0.08,
-          zIndex: -1,
-        },
-        animatedStyle,
-      ]}
-    >
-      <FontAwesome5 name={name} size={size} color="#6F4E37" />
-    </Animated.View>
-  );
-};
 
 export default function App() {
   const { completeOnboarding } = useAuth();

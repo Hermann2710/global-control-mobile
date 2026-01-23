@@ -5,48 +5,51 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Laptop, Monitor, Moon, Sun } from 'lucide-react-native'; // Import Lucide
+import { Monitor, Moon, Sun } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import * as React from 'react';
 
 export function ThemeToggle() {
     const { colorScheme, setColorScheme } = useColorScheme();
 
-    // Fonction pour l'icône principale du bouton
-    const HeaderIcon = () => {
-        if (colorScheme === 'light') return <Sun size={24} className="text-foreground" />;
-        if (colorScheme === 'dark') return <Moon size={24} className="text-foreground" />;
-        return <Laptop size={24} className="text-foreground" />; // Icône pour le mode système
-    };
+    // Définition des couleurs en "dur" pour garantir l'affichage
+    // Remplacez ces codes hexadécimaux par ceux de votre charte graphique
+    const iconColor = colorScheme === 'dark' ? '#FFFFFF' : '#000000';
 
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant='ghost' size='icon'>
-                    <HeaderIcon />
+                    {colorScheme === 'light' ? (
+                        <Sun size={24} color={iconColor} />
+                    ) : colorScheme === 'dark' ? (
+                        <Moon size={24} color={iconColor} />
+                    ) : (
+                        <Monitor size={24} color={iconColor} />
+                    )}
                 </Button>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent align='end' className='w-14 min-w-[56px] items-center'>
+            <DropdownMenuContent align='end' className='w-16 min-w-[64px] items-center'>
                 <DropdownMenuItem
                     onPress={() => setColorScheme('light')}
-                    className='justify-center py-3'
+                    className='justify-center py-4'
                 >
-                    <Sun size={20} className="text-foreground" />
+                    <Sun size={24} color={iconColor} />
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
                     onPress={() => setColorScheme('dark')}
-                    className='justify-center py-3'
+                    className='justify-center py-4'
                 >
-                    <Moon size={20} className="text-foreground" />
+                    <Moon size={24} color={iconColor} />
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
                     onPress={() => setColorScheme('system')}
-                    className='justify-center py-3'
+                    className='justify-center py-4'
                 >
-                    <Monitor size={20} className="text-foreground" />
+                    <Monitor size={24} color={iconColor} />
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

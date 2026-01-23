@@ -4,7 +4,7 @@ import { DrawerHeaderProps } from "@react-navigation/drawer";
 import React from "react";
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ThemeToggle } from "../shared/theme-picker";
+import { ThemeToggle } from "../shared/theme-toggle";
 
 const HeaderBar = ({ navigation, options }: DrawerHeaderProps) => {
   const insets = useSafeAreaInsets();

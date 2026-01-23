@@ -47,6 +47,8 @@ export default function ProfileScreen({ user }: { user: UserType }) {
         </View>
     );
 
+    if (!user) return null;
+
     return (
         <FormProvider {...form}>
             <ScrollView className="flex-1 px-5">
