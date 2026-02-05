@@ -29,7 +29,7 @@ const AnimatedCircle = ({
       -1,
       true
     );
-  }, [duration]);
+  }, [duration, scale]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],

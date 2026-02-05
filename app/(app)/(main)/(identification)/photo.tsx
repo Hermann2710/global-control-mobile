@@ -15,7 +15,7 @@ const PhotoScreen = () => {
     const formDataFields = {
       numeroLot,
       produitType,
-      operation,
+      operationType: operation,
       timestamp: new Date().toISOString()
     };
 

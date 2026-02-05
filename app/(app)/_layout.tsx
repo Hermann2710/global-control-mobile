@@ -103,12 +103,24 @@ export default function Layout() {
 
 
       <Drawer.Screen
+        name="chat"
+        options={{
+          title: "Chat",
+          drawerLabel: "Discussions",
+          drawerIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="chat-outline" size={size} color={color} />
+          ),
+        }}
+      />
+
+
+      <Drawer.Screen
         name="queue"
         options={{
           title: "Operations",
           drawerLabel: "Operations en Attente",
           drawerIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="file" size={size} color={color} />
+            <MaterialCommunityIcons name="file-outline" size={size} color={color} />
           ),
         }}
       />

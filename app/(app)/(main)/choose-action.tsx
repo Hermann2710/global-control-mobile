@@ -19,7 +19,12 @@ export default function ChooseActionScreen() {
   const category = constants.categories.find((c) => c.slug === produitType);
 
   const filteredActions = category?.actions.filter(
-    (action) => action.requireNumLot === !!numeroLot
+    (action) => {
+      if (numeroLot) {
+        return action.requireNumLot === true || action.requireNumLot === false;
+      }
+      return action.requireNumLot === false;
+    }
   );
 
   if (!category) return null;
@@ -57,7 +62,7 @@ export default function ChooseActionScreen() {
                   params: {
                     numeroLot,
                     produitType,
-                    operation: item.label
+                    operation: item.id
                   }
                 })
               }}

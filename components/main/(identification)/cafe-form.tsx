@@ -12,123 +12,136 @@ import { Text } from '@/components/ui/text';
 import { CafeFormData, cafeSchema } from '@/schemas/cafe-schema';
 
 export default function CafeForm({ produitType, numeroLot }: { produitType: string; numeroLot: string }) {
-    const form = useForm<CafeFormData>({
+    const form = useForm({
         resolver: zodResolver(cafeSchema),
         defaultValues: {
             productType: produitType,
             numeroLot: numeroLot,
             data: {
                 date: new Date(),
+                numTest: '',
+                operateur: '',
+                th: '',
+                provenance: '',
+                typeSacs: 'Jute',
+                conditionnement: 'Neuf',
+                observations: '',
+                // Sections issues du nouveau schéma
+                tv: { numCamion: '', tvCode: '', breSacsTV: 0, poidsNetTV: '', numConteneur: 0 },
+                exp: { numLot: '', breSacs: 0, poidsNet: '', numConteneur: 0 },
+                em: { numLot: '', breSacs: 0, numConteneur: '', poidsNet: '' },
+                // Champs techniques
                 humidite: { val1: '', val2: '', val3: '' },
+                piqueeScolytee: '',
+                ditesSeches: '',
+                fevesNoires: '',
+                fevesDemiNoires: '',
+                brisures: '',
+                coquilles: '',
+                cerises: '',
+                grossesPeaux: '',
+                petitesPeaux: '',
+                fevesBlanches: '',
+                fevesEnParche: '',
+                fevesVertes: '',
+                indesirables: '',
+                coquesPalmistes: '',
+                fevesMoisies: '',
                 bois: { g: '', m: '', p: '' },
+                pierres: '',
                 calibrage: { "20": '', "18": '', "17": '', "16": '', "15": '', "14": '', "13": '', "10": '', fond: '' }
             }
         }
     });
 
-    const [activeStep, setActiveStep] = useState<string>('step-1');
+    const [activeStep, setActiveStep] = useState<string>('step-0');
 
-    const onSubmit = (data: CafeFormData) => {
-        console.log("Données envoyées :", data);
+    const onSubmit = (values: CafeFormData) => {
+        console.log("Données validées :", values);
     };
 
-    // Petit helper pour générer les champs rapidement
-    const renderField = (path: any, label: string, placeholder = "0", keyboard = "numeric" as any) => (
-        <View className="gap-1.5 flex-1">
-            <Label className="text-sm">{label}</Label>
-            <Controller
-                control={form.control}
-                name={path}
-                render={({ field: { onChange, onBlur, value } }) => (
-                    <Input
-                        placeholder={placeholder}
-                        keyboardType={keyboard}
-                        onBlur={onBlur}
-                        onChangeText={onChange}
-                        value={value}
-                    />
-                )}
-            />
-        </View>
-    );
+    const renderField = (path: any, label: string, placeholder = "0", keyboard = "numeric" as any) => {
+        const error = path.split('.').reduce((obj: any, key: string) => obj?.[key], form.formState.errors);
+
+        return (
+            <View className="gap-1.5 flex-1 mb-2">
+                <Label className="text-sm font-medium">{label}</Label>
+                <Controller
+                    control={form.control}
+                    name={path}
+                    render={({ field: { onChange, onBlur, value } }) => (
+                        <Input
+                            placeholder={placeholder}
+                            keyboardType={keyboard}
+                            onBlur={onBlur}
+                            onChangeText={onChange}
+                            value={value?.toString() ?? ''}
+                            className={error ? "border-destructive" : ""}
+                        />
+                    )}
+                />
+                {error && <Text className="text-destructive text-xs">{error.message}</Text>}
+            </View>
+        );
+    };
 
     return (
         <FormProvider {...form}>
             <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
                 <Accordion value={activeStep} onValueChange={setActiveStep} type='single' collapsible={false}>
 
-                    {/* SECTION 1 : HUMIDITÉ & INFOS GÉNÉRALES */}
+                    {/* SECTION 0 : LOGISTIQUE (TV, EXP, EM) */}
+                    <FormSection value='step-0' title='0. Identification & Logistique' iconName='bus-outline'>
+                        <View className='gap-4'>
+                            <Text className="font-bold border-b border-border pb-1">Transport (TV)</Text>
+                            <View className="flex-row gap-2">
+                                {renderField('data.tv.numCamion', "N° Camion", "ABC-123", "default")}
+                                {renderField('data.tv.tvCode', "Code TV", "CODE", "default")}
+                            </View>
+                            <View className="flex-row gap-2">
+                                {renderField('data.tv.breSacsTV', "Sacs (TV)")}
+                                {renderField('data.tv.poidsNetTV', "Poids Net (TV)")}
+                            </View>
+                            {renderField('data.tv.numConteneur', "N° Conteneur (TV)")}
+
+                            <Text className="font-bold border-b border-border pb-1 mt-2">Exportation (EXP)</Text>
+                            {renderField('data.exp.numLot', "N° Lot EXP", "Lot-EXP", "default")}
+                            <View className="flex-row gap-2">
+                                {renderField('data.exp.breSacs', "Sacs (EXP)")}
+                                {renderField('data.exp.poidsNet', "Poids Net (EXP)")}
+                            </View>
+
+                            <Text className="font-bold border-b border-border pb-1 mt-2">Emballage (EM)</Text>
+                            <View className="flex-row gap-2">
+                                {renderField('data.em.numLot', "N° Lot EM", "Lot-EM", "default")}
+                                {renderField('data.em.numConteneur', "N° Cont. EM", "CONT-EM", "default")}
+                            </View>
+
+                            <Button onPress={() => setActiveStep('step-1')} className="mt-4">
+                                <Text>Suivant : Analyse Café</Text>
+                            </Button>
+                        </View>
+                    </FormSection>
+
+                    {/* SECTION 1 : HUMIDITÉ & TEST */}
                     <FormSection value='step-1' title='1. Humidité & Test' iconName='water-outline'>
                         <View className='gap-4'>
-                            {renderField('data.numTest', "Numéro de Test", "Ex: T-001", "default")}
+                            {renderField('data.numTest', "Numéro de Test", "T-001", "default")}
                             <Text className="font-bold mt-2">Mesures d&apos;humidité (%)</Text>
                             <View className="flex-row gap-2">
                                 {renderField('data.humidite.val1', "Val 1")}
                                 {renderField('data.humidite.val2', "Val 2")}
                                 {renderField('data.humidite.val3', "Val 3")}
                             </View>
-                            <Button onPress={() => setActiveStep('step-2')} className="mt-4">
-                                <Text>Suivant : Défauts Physiques</Text>
-                            </Button>
-                        </View>
-                    </FormSection>
-
-                    {/* SECTION 2 : DÉFAUTS PHYSIQUES */}
-                    <FormSection value='step-2' title='2. Défauts & Matières' iconName='flask-outline'>
-                        <View className='gap-3'>
-                            <View className="flex-row gap-2">
-                                {renderField('data.piqueeScolytee', "Piquée")}
-                                {renderField('data.ditesSeches', "Sèches")}
-                            </View>
-                            <View className="flex-row gap-2">
-                                {renderField('data.fevesNoires', "Noires")}
-                                {renderField('data.fevesDemiNoires', "1/2 Noires")}
-                            </View>
-                            <View className="flex-row gap-2">
-                                {renderField('data.fevesMoisies', "Moisies")}
-                                {renderField('data.fevesBlanches', "Blanches")}
-                            </View>
-                            <View className="flex-row gap-2">
-                                {renderField('data.brisures', "Brisures")}
-                                {renderField('data.coquilles', "Coquilles")}
-                            </View>
-                            <View className="flex-row gap-2">
-                                {renderField('data.cerises', "Cerises")}
-                                {renderField('data.fevesEnParche', "Parche")}
-                            </View>
-                            <View className="flex-row gap-2">
-                                {renderField('data.fevesVertes', "Vertes")}
-                                {renderField('data.indesirables', "Indésirables")}
-                            </View>
-                            <View className="flex-row gap-2">
-                                {renderField('data.grossesPeaux', "Gr. Peaux")}
-                                {renderField('data.petitesPeaux', "Pet. Peaux")}
-                                {renderField('data.coquesPalmistes', "Palmistes")}
-                            </View>
-                            <Button onPress={() => setActiveStep('step-3')} className="mt-4">
-                                <Text>Suivant : Corps étrangers</Text>
-                            </Button>
-                        </View>
-                    </FormSection>
-
-                    {/* SECTION 3 : CORPS ÉTRANGERS (BOIS & PIERRES) */}
-                    <FormSection value='step-3' title='3. Corps Étrangers' iconName='construct-outline'>
-                        <View className='gap-4'>
-                            <Text className="font-bold">Débris de Bois (g)</Text>
-                            <View className="flex-row gap-2">
-                                {renderField('data.bois.g', "Grand")}
-                                {renderField('data.bois.m', "Moyen")}
-                                {renderField('data.bois.p', "Petit")}
-                            </View>
-                            {renderField('data.pierres', "Pierres (g)")}
+                            {renderField('data.provenance', "Provenance", "Région", "default")}
                             <Button onPress={() => setActiveStep('step-4')} className="mt-4">
-                                <Text>Suivant : Calibrage</Text>
+                                <Text>Aller au Calibrage</Text>
                             </Button>
                         </View>
                     </FormSection>
 
-                    {/* SECTION 4 : CALIBRAGE */}
-                    <FormSection value='step-4' title='4. Calibrage' iconName='grid-outline'>
+                    {/* SECTION 3 : CALIBRAGE & FINALISATION */}
+                    <FormSection value='step-3' title='3. Calibrage & Envoi' iconName='grid-outline'>
                         <View className='gap-3'>
                             <View className="flex-row flex-wrap gap-2">
                                 {renderField('data.calibrage.20', "C20")}
@@ -145,11 +158,18 @@ export default function CafeForm({ produitType, numeroLot }: { produitType: stri
                                 {renderField('data.calibrage.10', "C10")}
                                 {renderField('data.calibrage.fond', "Fond")}
                             </View>
+
                             <View className="mt-4 border-t border-border pt-4">
                                 {renderField('data.operateur', "Nom de l'Opérateur", "Nom", "default")}
+                                {renderField('data.observations', "Observations (Optionnel)", "...", "default")}
                             </View>
-                            <Button variant="default" className="bg-primary h-14 mt-4" onPress={form.handleSubmit(onSubmit)}>
-                                <Text className="text-white font-bold">Enregistrer le formulaire complet</Text>
+
+                            <Button
+                                variant="default"
+                                className="bg-primary h-14 mt-4"
+                                onPress={form.handleSubmit(onSubmit)}
+                            >
+                                <Text className="text-white font-bold">Valider l&apos;Analyse Café</Text>
                             </Button>
                         </View>
                     </FormSection>

@@ -51,7 +51,7 @@ export const PhotoPageView = ({
                     {operation} du {produitType}
                 </Text>
                 <Text className="text-muted-foreground mb-6">
-                    Lot N°: {numeroLot || "inconnu"} — Sélectionnez vos photos (max. 5).
+                    Lot N°: {numeroLot || "inconnu"} — Sélectionnez vos photos (max. 20).
                 </Text>
 
                 <View className="flex-row flex-wrap gap-3">
@@ -59,7 +59,7 @@ export const PhotoPageView = ({
                         <PhotoItem key={uri} uri={uri} onRemove={() => removeImage(index)} />
                     ))}
 
-                    {images.length < 5 && (
+                    {images.length < 20 && (
                         <AddPhotoButton
                             onPress={handleAddImagePress}
                             isFullWidth={images.length === 0}

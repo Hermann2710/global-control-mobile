@@ -39,6 +39,11 @@ class AuthService {
     const response = await api.post("/auth/verify-otp-code", data);
     return verifyOtpResponseSchema.parse(response.data);
   }
+
+  async checkAuthentication(): Promise<AuthType> {
+    const response = await api.get("/auth/check-authentication");
+    return authResponseSchema.parse(response.data);
+  }
 }
 
 export default new AuthService();

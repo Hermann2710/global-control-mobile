@@ -13,35 +13,104 @@ import { Label } from '@/components/ui/label';
 import { Text } from '@/components/ui/text';
 
 export default function CacaoForm({ numeroLot, produitType }: { numeroLot: string, produitType: string }) {
-    const form = useForm<CacaoFormData>({
-        resolver: zodResolver(cacaoSchema) as any,
-        defaultValues: { numerotLot: numeroLot, productType: produitType }
+    const form = useForm({
+        resolver: zodResolver(cacaoSchema),
+        defaultValues: {
+            numerotLot: numeroLot,
+            productType: produitType,
+            data: {
+                numTest: '',
+                technicien: '',
+                poidsEchantillon: '',
+                date: new Date(),
+                th: '',
+                provenance: '',
+                typeSacs: 'Jute',
+                conditionnement: 'Neuf',
+                observations: '',
+                // Sections Logistiques
+                tv: { numCamion: '', tvCode: '', breSacsTV: 0, poidsNetTV: '', numConteneur: 0 },
+                exp: { numLot: '', breSacs: 0, poidsNet: '', numConteneur: 0 },
+                em: { numLot: '', breSacs: 0, numConteneur: '', poidsNet: '' },
+                // Sections Physiques
+                humidite: { val1: '', val2: '', val3: '' },
+                tamissage: '',
+                triage: { crabots: '', brisures: '', fragCoques: '' },
+                matEtrangere: '',
+                grainage: '',
+                testCoupe: { moisies: '', ardoisees: '', violettes: '', whiteSpots: '' },
+                defectueuses: { mitees: '', plates: '', germees: '' },
+                sensoriel: 'No Smoky'
+            }
+        }
     });
 
-    const [activeStep, setActiveStep] = useState<string>('step-1');
+    const [activeStep, setActiveStep] = useState<string>('step-0');
 
-    const renderInput = (path: any, label: string, placeholder = "0") => (
-        <View className="gap-1.5 flex-1">
-            <Label className="text-xs uppercase text-muted-foreground">{label}</Label>
-            <Controller
-                control={form.control}
-                name={path}
-                render={({ field: { onChange, value } }) => (
-                    <Input placeholder={placeholder} keyboardType="numeric" onChangeText={onChange} value={value} />
-                )}
-            />
-        </View>
-    );
+    const onSubmit = (data: CacaoFormData) => {
+        console.log("Données Cacao validées :", data);
+    };
+
+    const renderInput = (path: any, label: string, placeholder = "0", keyboard: "numeric" | "default" = "numeric") => {
+        const error = path.split('.').reduce((obj: any, key: string) => obj?.[key], form.formState.errors);
+
+        return (
+            <View className="gap-1.5 flex-1 mb-2">
+                <Label className="text-xs uppercase text-muted-foreground">{label}</Label>
+                <Controller
+                    control={form.control}
+                    name={path}
+                    render={({ field: { onChange, onBlur, value } }) => (
+                        <Input
+                            placeholder={placeholder}
+                            keyboardType={keyboard}
+                            onBlur={onBlur}
+                            onChangeText={onChange}
+                            value={value?.toString() ?? ''}
+                            className={error ? "border-destructive" : ""}
+                        />
+                    )}
+                />
+                {error && <Text className="text-destructive text-[10px]">{error.message}</Text>}
+            </View>
+        );
+    };
 
     return (
         <FormProvider {...form}>
-            <ScrollView className="flex-1">
+            <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
                 <Accordion value={activeStep} onValueChange={setActiveStep} type='single' collapsible={false}>
 
-                    {/* SECTION 1: MESURES PHYSIQUES */}
+                    {/* SECTION 0: LOGISTIQUE (IDENTIFICATION IMAGE) */}
+                    <FormSection value='step-0' title='0. Logistique & Transport' iconName='bus-outline'>
+                        <View className='gap-4'>
+                            <Text className="font-bold text-sm border-b border-border pb-1">Transport (TV)</Text>
+                            <View className="flex-row gap-2">
+                                {renderInput('data.tv.numCamion', "N° Camion", "ABC-123", "default")}
+                                {renderInput('data.tv.tvCode', "Code TV", "CODE", "default")}
+                            </View>
+                            <View className="flex-row gap-2">
+                                {renderInput('data.tv.breSacsTV', "Sacs (TV)")}
+                                {renderInput('data.tv.numConteneur', "N° Cont.")}
+                            </View>
+
+                            <Text className="font-bold text-sm border-b border-border pb-1 mt-2">Expertise & Provenance</Text>
+                            <View className="flex-row gap-2">
+                                {renderInput('data.provenance', "Provenance", "Région", "default")}
+                                {renderInput('data.th', "T.H", "Valeur", "default")}
+                            </View>
+
+                            <Button onPress={() => setActiveStep('step-1')} className="mt-2">
+                                <Text>Suivant : Mesures Physiques</Text>
+                            </Button>
+                        </View>
+                    </FormSection>
+
+                    {/* SECTION 1: HUMIDITÉ & TRIAGE */}
                     <FormSection value='step-1' title='1-3. Humidité & Triage' iconName='flask-outline'>
                         <View className='gap-4'>
-                            <Text className="font-bold text-sm">1. Humidité</Text>
+                            {renderInput('data.numTest', "Numéro de Test", "T-001", "default")}
+                            <Text className="font-bold text-sm">1. Humidité (%)</Text>
                             <View className="flex-row gap-2">
                                 {renderInput('data.humidite.val1', "Mesure 1")}
                                 {renderInput('data.humidite.val2', "Mesure 2")}
@@ -53,7 +122,7 @@ export default function CacaoForm({ numeroLot, produitType }: { numeroLot: strin
                             <View className="flex-row gap-2">
                                 {renderInput('data.triage.crabots', "Crabôts")}
                                 {renderInput('data.triage.brisures', "Brisures")}
-                                {renderInput('data.triage.fragCoques', "Frag./Coques")}
+                                {renderInput('data.triage.fragCoques', "Coques")}
                             </View>
                             <Button onPress={() => setActiveStep('step-2')} className="mt-2"><Text>Suivant</Text></Button>
                         </View>
@@ -70,16 +139,14 @@ export default function CacaoForm({ numeroLot, produitType }: { numeroLot: strin
                             <View className="flex-row flex-wrap gap-2">
                                 {renderInput('data.testCoupe.moisies', "Moisies")}
                                 {renderInput('data.testCoupe.ardoisees', "Ardoisées")}
-                            </View>
-                            <View className="flex-row flex-wrap gap-2">
                                 {renderInput('data.testCoupe.violettes', "Violettes")}
-                                {renderInput('data.testCoupe.whiteSpots', "White Spots")}
+                                {renderInput('data.testCoupe.whiteSpots', "W. Spots")}
                             </View>
                             <Button onPress={() => setActiveStep('step-3')} className="mt-2"><Text>Suivant</Text></Button>
                         </View>
                     </FormSection>
 
-                    {/* SECTION 3: DÉFECTUEUSES & SENSORIEL */}
+                    {/* SECTION 3: FINALISATION */}
                     <FormSection value='step-3' title='7-9. Finalisation' iconName='checkmark-circle-outline'>
                         <View className='gap-4'>
                             <Text className="font-bold text-sm">7. Défectueuses</Text>
@@ -91,9 +158,9 @@ export default function CacaoForm({ numeroLot, produitType }: { numeroLot: strin
 
                             <Text className="font-bold text-sm mt-2">8. Cont. Sensorielle</Text>
                             <View className="flex-row justify-around py-2 border border-border rounded-lg">
-                                {['Smoky', 'no smoky', 'Other'].map((label) => (
+                                {['Smoky', 'No Smoky', 'Other'].map((label) => (
                                     <View key={label} className="items-center gap-1">
-                                        <Text className="text-xs">{label}</Text>
+                                        <Text className="text-[10px] uppercase font-bold">{label}</Text>
                                         <Controller
                                             control={form.control}
                                             name="data.sensoriel"
@@ -105,14 +172,11 @@ export default function CacaoForm({ numeroLot, produitType }: { numeroLot: strin
                                 ))}
                             </View>
 
-                            {renderInput('data.poidsEchantillon', "9. Poids de l'échantillon", "Poids en g")}
+                            {renderInput('data.poidsEchantillon', "9. Poids Échantillon (g)")}
+                            {renderInput('data.technicien', "Technicien / GCS", "Nom", "default")}
 
-                            <View className="mt-4 p-4 bg-muted rounded-xl">
-                                {renderInput('data.technicien', "Nom du Technicien / GCS", "Nom")}
-                            </View>
-
-                            <Button variant="default" className="bg-primary h-14 mt-4" onPress={form.handleSubmit(console.log)}>
-                                <Text className="text-primary-foreground font-bold">Enregistrer le contrôle cacao</Text>
+                            <Button variant="default" className="bg-primary h-14 mt-4" onPress={form.handleSubmit(onSubmit)}>
+                                <Text className="text-primary-foreground font-bold uppercase">Enregistrer le contrôle cacao</Text>
                             </Button>
                         </View>
                     </FormSection>

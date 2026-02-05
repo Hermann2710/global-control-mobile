@@ -18,6 +18,7 @@ type AuthContextType = {
   setUser: React.Dispatch<React.SetStateAction<UserType | null>>;
   isLoading: boolean;
   isFirstTime: boolean;
+  checkAuthentication: () => Promise<void>;
   signIn: (data: LoginSchemaType) => Promise<void>;
   signOut: () => Promise<void>;
   sendOtp: (data: ForgotPasswordData) => Promise<void>;
@@ -81,6 +82,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const checkAuthentication = async () => {
+    try {
+      setIsLoading(true);
+      const response = await authService.checkAuthentication();
+      if (response.success) {
+        setUser(response.data.user);
+      } else {
+        authStorage.clearAuthData();
+        setToken(null);
+        setUser(null);
+        router.replace("/auth/login");
+      }
+    } catch (error) {
+      console.error("Check authentication error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const signIn = async (data: LoginSchemaType) => {
     try {
       setIsLoading(true);
@@ -100,6 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         text1: response.message,
       });
     } catch (error: any) {
+      console.log(error);
       Toast.show({
         type: "error",
         text1: "Erreur lors de la connexion",
@@ -171,6 +192,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser,
         isLoading,
         isFirstTime,
+        checkAuthentication,
         signIn,
         sendOtp,
         signOut,

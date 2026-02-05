@@ -161,7 +161,7 @@ export const UploadProvider = ({ children }: { children: React.ReactNode }) => {
         setIsSyncing(false);
     }, [chargerDonneesDepuisStockage, envoyerFichiers, estEnLigne, isSyncing, sauvegarderEtActualiser]);
 
-    useEffect(() => { if (estEnLigne) traiterQueue(); }, [estEnLigne, traiterQueue]);
+    // useEffect(() => { if (estEnLigne) traiterQueue(); }, [estEnLigne, traiterQueue]);
 
     const viderLaQueue = async () => {
         const actuelle = await chargerDonneesDepuisStockage();
