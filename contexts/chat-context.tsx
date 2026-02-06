@@ -4,6 +4,7 @@ import { Conversation, MessageType } from "@/schemas/chat-schema";
 import { UserType } from "@/schemas/user-schema";
 import chatService from "@/services/chat-service";
 import { createContext, Dispatch, ReactNode, SetStateAction, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import Toast from 'react-native-toast-message';
 import { io, Socket } from "socket.io-client";
 import { useAuth } from "./auth-context";
 
@@ -12,14 +13,14 @@ const WS_URL = 'wss://api.globalcontrolsarl.theplug-group.com';
 export interface ChatInterface {
     search: string;
     setSearch: Dispatch<SetStateAction<string>>;
-    users: UserType[];
     conversations: Conversation[];
     messages: MessageType[];
     activeConversation: Conversation | null;
     setActiveConversation: Dispatch<SetStateAction<Conversation | null>>;
+    getOrCreateConversation: (receiver: UserType) => Promise<Conversation | undefined>;
     sendMessage: (content: string) => Promise<void>;
     markAsRead: () => Promise<void>;
-    deleteMessage: (id: string | number) => Promise<void>
+    deleteMessage: (id: string | number) => Promise<void>;
     loading: boolean;
     sending: boolean;
     error: string | null;
@@ -52,6 +53,14 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
         socket.on("connect", () => {
             socket.emit('register', user.id);
+        });
+
+        socket.on("connect_error", () => {
+            Toast.show({
+                type: 'error',
+                text1: 'Erreur de connexion',
+                text2: 'Impossible de rejoindre le serveur de discussion.'
+            });
         });
 
         socket.on("newMessage", (message: MessageType) => {
@@ -92,6 +101,11 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
             setConversations(prev => prev.map(c => ({ ...c, messages: filterMsgs(c.messages) })));
             setActiveConversation(prev => prev ? { ...prev, messages: filterMsgs(prev.messages) } : null);
+
+            Toast.show({
+                type: 'success',
+                text1: 'Message supprimé'
+            });
         });
 
         return () => {
@@ -117,19 +131,50 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         });
     }, [search, conversations, user?.id]);
 
+    const getOrCreateConversation = async (receiver: UserType) => {
+        if (!user) return;
+        try {
+            const existingConv = conversations.find(conv =>
+                (conv.user1.id === receiver.id || conv.user2.id === receiver.id)
+            );
+
+            if (existingConv) {
+                setActiveConversation(existingConv);
+                return existingConv;
+            }
+
+            const response = await chatService.getOrCreateConversation(user, receiver);
+            const newConversation = response.data;
+
+            setConversations(prev => {
+                const exists = prev.some(c => String(c.id) === String(newConversation.id));
+                if (exists) return prev;
+                return [newConversation, ...prev];
+            });
+
+            setActiveConversation(newConversation);
+            return newConversation;
+        } catch (err: any) {
+            Toast.show({
+                type: 'error',
+                text1: 'Erreur',
+                text2: 'Impossible de créer la conversation'
+            });
+        }
+    };
+
     const sendMessage = useCallback(async (content: string) => {
         if (!activeConversation || !content.trim() || !user) return;
 
-        /* const recipient = activeConversation.user1.id === user.id
+        const recipient = activeConversation.user1.id === user.id
             ? activeConversation.user2
             : activeConversation.user1;
-        */
 
         socketRef.current?.emit("sendMessage", {
             sender: user.id.toString(),
             content: content.trim(),
             conversation: activeConversation.id.toString(),
-            // recieve: recipient.id.toString()
+            //recieve: recipient.id.toString()
         });
     }, [activeConversation, user]);
 
@@ -167,7 +212,11 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
                     const response = await chatService.getConversations(user.id);
                     setConversations(response.data);
                 } catch (err) {
-                    setError("Erreur chargement");
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Erreur de chargement',
+                        text2: 'Impossible de récupérer vos discussions'
+                    });
                 } finally {
                     setLoading(false);
                 }
@@ -177,10 +226,11 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     }, [user?.id]);
 
     const value: ChatInterface = {
-        search, setSearch, users: [],
+        search, setSearch,
         conversations: filteredConversations,
         messages: activeConversation?.messages || [],
         activeConversation, setActiveConversation,
+        getOrCreateConversation,
         sendMessage, markAsRead,
         deleteMessage,
         loading, sending, error

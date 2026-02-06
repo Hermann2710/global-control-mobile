@@ -4,26 +4,31 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 
 const PhotoScreen = () => {
   const router = useRouter();
-  const { isUploading, ajouterALaQueue } = useUpload();
+  const { isUploading, addToQueue } = useUpload();
   const { numeroLot, produitType, operation } = useLocalSearchParams<{
     numeroLot: string,
     produitType: string,
     operation: string
   }>();
 
-  const handleFormSubmit = async (images: string[]) => {
+  const handleFormSubmit = async (images: string[], pvNumber?: string) => {
     const formDataFields = {
-      numeroLot,
-      produitType,
-      operationType: operation,
-      timestamp: new Date().toISOString()
+      numeroLot: numeroLot,
+      productType: produitType,
+      operation: operation,
+      date: new Date().toISOString(),
+      data: {
+        numeroPv: pvNumber || null,
+        timestamp: new Date().toISOString(),
+        description: `Photo capture for ${operation}`
+      }
     };
 
     try {
-      await ajouterALaQueue(images, "/images/upload", formDataFields);
+      await addToQueue(images, "/draft-mobile/upload", formDataFields);
       router.back();
     } catch (error) {
-      console.error("Erreur lors de la soumission:", error);
+      console.error("Submission error:", error);
     }
   };
 

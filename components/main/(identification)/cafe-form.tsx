@@ -9,9 +9,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Text } from '@/components/ui/text';
+import { useUpload } from '@/contexts/upload-context';
 import { CafeFormData, cafeSchema } from '@/schemas/cafe-schema';
 
 export default function CafeForm({ produitType, numeroLot }: { produitType: string; numeroLot: string }) {
+    const { addToQueue } = useUpload()
     const form = useForm({
         resolver: zodResolver(cafeSchema),
         defaultValues: {
@@ -56,8 +58,8 @@ export default function CafeForm({ produitType, numeroLot }: { produitType: stri
 
     const [activeStep, setActiveStep] = useState<string>('step-0');
 
-    const onSubmit = (values: CafeFormData) => {
-        console.log("Données validées :", values);
+    const onSubmit = async (values: CafeFormData) => {
+        await addToQueue([], "/images/upload", values)
     };
 
     const renderField = (path: any, label: string, placeholder = "0", keyboard = "numeric" as any) => {

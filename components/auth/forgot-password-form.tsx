@@ -53,7 +53,7 @@ const ForgotPasswordForm = () => {
               <ActivityIndicator color="white" />
             ) : (
               <Text className="text-primary-foreground font-bold text-lg">
-                Envoyer le lien
+                Envoyer le code
               </Text>
             )}
           </Button>

@@ -6,7 +6,7 @@ import React from 'react';
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function QueueScreen() {
-    const { queue, tailleQueue, isSyncing, reessayerTout, viderLaQueue, supprimerItem } = useUpload();
+    const { queue, queueSize, isSyncing, retryAll, clearQueue, removeItem } = useUpload();
 
     const handleConfirmDelete = (id: string) => {
         Alert.alert(
@@ -14,7 +14,7 @@ export default function QueueScreen() {
             "Voulez-vous retirer cet élément de la file ?",
             [
                 { text: "Annuler", style: "cancel" },
-                { text: "Supprimer", style: "destructive", onPress: () => supprimerItem(id) }
+                { text: "Supprimer", style: "destructive", onPress: () => removeItem(id) }
             ]
         );
     };
@@ -25,7 +25,7 @@ export default function QueueScreen() {
                 <Text className="text-2xl font-bold mb-6 text-foreground">File d&apos;attente</Text>
 
                 {/* Bannière d'état - Bordures renforcées */}
-                {tailleQueue > 0 && (
+                {queueSize > 0 && (
                     <View className={`p-4 rounded-2xl mb-6 flex-row items-center border border-border ${isSyncing ? 'bg-primary/400' : "bg-foreground"}`}>
                         <ActivityIndicator animating={isSyncing} color={isSyncing ? "#2563eb" : "#f97316"} />
                         <View className="ml-3 flex-1">
@@ -33,11 +33,11 @@ export default function QueueScreen() {
                                 {isSyncing ? "Synchronisation..." : "En attente"}
                             </Text>
                             <Text className="text-xs text-muted-foreground">
-                                {tailleQueue} formulaire(s) restant(s)
+                                {queueSize} formulaire(s) restant(s)
                             </Text>
                         </View>
                         {!isSyncing && (
-                            <TouchableOpacity onPress={reessayerTout} className="bg-orange-500 px-4 py-2 rounded-xl shadow-sm">
+                            <TouchableOpacity onPress={retryAll} className="bg-orange-500 px-4 py-2 rounded-xl shadow-sm">
                                 <Text className="text-white text-xs font-bold">Relancer</Text>
                             </TouchableOpacity>
                         )}
@@ -98,9 +98,9 @@ export default function QueueScreen() {
                     </View>
                 )}
 
-                {tailleQueue > 0 && (
+                {queueSize > 0 && (
                     <TouchableOpacity
-                        onPress={viderLaQueue}
+                        onPress={clearQueue}
                         className="mt-8 mb-10 py-4 border border-destructive/20 rounded-2xl"
                     >
                         <Text className="text-destructive font-bold text-center">Vider toute la file d&apos;attente</Text>

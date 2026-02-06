@@ -1,8 +1,14 @@
 import api from "@/lib/api";
+import { UserType } from "@/schemas/user-schema";
 
 class ChatService {
-    async getAllUsers() {
-        const response = await api.get('/users');
+    async getAllUsers(page: number=1, per_page: number=10) {
+        const response = await api.get('/users', {
+            params: {
+                page,
+                per_page
+            }
+        });
         return response.data;
     }
     
@@ -11,20 +17,16 @@ class ChatService {
         return response.data;
     }
 
-    async getConversationById(conversationId: string | number) {
-        const response = await api.get(`/chat/conversation/${conversationId}`);
-        return response.data;
+    async getOrCreateConversation(sender: UserType, receiver: UserType) {
+        const response = await api.post("/chat/create-conversation", {
+            sender,
+            receiver,
+        });
+        return response.data
     }
 
-    async sendMessage(senderId: number, content: string, conversationId?: number, recipientId?: number) {
-        const payload: any = {
-            sender: senderId,
-            content: content
-        };
-        if (conversationId) payload.conversation = conversationId;
-        if (recipientId) payload.recieve = recipientId;
-
-        const response = await api.post(`/chat/send`, payload);
+    async getConversationById(conversationId: string | number) {
+        const response = await api.get(`/chat/conversation/${conversationId}`);
         return response.data;
     }
 

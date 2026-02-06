@@ -23,7 +23,7 @@ const ForgotPasswordScreen = () => {
           </Text>
 
           <Text className="mt-3 text-center text-muted-foreground text-sm sm:text-lg leading-6 px-2">
-            Entrez votre adresse email pour recevoir un lien de
+            Entrez votre adresse email pour recevoir un code de
             réinitialisation.
           </Text>
 

@@ -6,75 +6,77 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import Toast from "react-native-toast-message";
 
-const CLE_STOCKAGE_QUEUE = "@file_attente_upload";
+const STORAGE_KEY_QUEUE = "@upload_queue_pending";
 
-export interface ItemQueue {
+export interface QueueItem {
     id: string;
     uris: string[];
     endpoint: string;
-    metadonnees: { nom: string; taille: number; type: string }[];
+    metadata: { name: string; size: number; type: string }[];
     data?: Record<string, any>;
 }
 
 interface UploadContextType {
-    ajouterALaQueue: (uris: string | string[], endpoint: string, data?: Record<string, any>) => Promise<void>;
+    addToQueue: (uris: string | string[], endpoint: string, data?: Record<string, any>) => Promise<void>;
     isSyncing: boolean;
     isUploading: boolean;
-    tailleQueue: number;
-    queue: ItemQueue[];
-    reessayerTout: () => Promise<void>;
-    viderLaQueue: () => Promise<void>;
-    supprimerItem: (id: string) => Promise<void>;
+    queueSize: number;
+    queue: QueueItem[];
+    retryAll: () => Promise<void>;
+    clearQueue: () => Promise<void>;
+    removeItem: (id: string) => Promise<void>;
 }
 
 export const UploadContext = createContext<UploadContextType | undefined>(undefined);
 
 export const UploadProvider = ({ children }: { children: React.ReactNode }) => {
-    const estEnLigne = useIsOnline();
+    const isOnline = useIsOnline();
     const [isSyncing, setIsSyncing] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
-    const [queue, setQueue] = useState<ItemQueue[]>([]);
-    const [tailleQueue, setTailleQueue] = useState(0);
+    const [queue, setQueue] = useState<QueueItem[]>([]);
+    const [queueSize, setQueueSize] = useState(0);
 
-    const chargerDonneesDepuisStockage = useCallback(async (): Promise<ItemQueue[]> => {
-        const data = await AsyncStorage.getItem(CLE_STOCKAGE_QUEUE);
+    const loadDataFromStorage = useCallback(async (): Promise<QueueItem[]> => {
+        const data = await AsyncStorage.getItem(STORAGE_KEY_QUEUE);
         return data ? JSON.parse(data) : [];
     }, []);
 
-    const sauvegarderEtActualiser = useCallback(async (nouvelleQueue: ItemQueue[]) => {
-        await AsyncStorage.setItem(CLE_STOCKAGE_QUEUE, JSON.stringify(nouvelleQueue));
-        setQueue(nouvelleQueue);
-        setTailleQueue(nouvelleQueue.length);
+    const saveAndRefresh = useCallback(async (newQueue: QueueItem[]) => {
+        await AsyncStorage.setItem(STORAGE_KEY_QUEUE, JSON.stringify(newQueue));
+        setQueue(newQueue);
+        setQueueSize(newQueue.length);
     }, []);
 
-    const rafraichirQueue = useCallback(async () => {
-        const data = await chargerDonneesDepuisStockage();
+    const refreshQueue = useCallback(async () => {
+        const data = await loadDataFromStorage();
         setQueue(data);
-        setTailleQueue(data.length);
-    }, [chargerDonneesDepuisStockage]);
+        setQueueSize(data.length);
+    }, [loadDataFromStorage]);
 
     useEffect(() => {
-        FileService.init().then(rafraichirQueue);
-    }, [rafraichirQueue]);
+        FileService.init().then(refreshQueue);
+    }, [refreshQueue]);
 
-    const envoyerFichiers = useCallback(async (item: ItemQueue) => {
+    const sendFiles = useCallback(async (item: QueueItem) => {
         const formData = new FormData();
-        item.uris.forEach((uriOuNom, index) => {
-            const meta = item.metadonnees[index];
 
-            // Reconstruction dynamique du chemin pour iOS
-            const uriFinale = uriOuNom.startsWith('file://')
-                ? uriOuNom
-                : FileService.obtenirUriComplete(uriOuNom);
+        item.uris.forEach((uriOrName, index) => {
+            if (!uriOrName) return;
+            const meta = item.metadata[index];
+            const finalUri = uriOrName.startsWith('file://') || uriOrName.startsWith('content://')
+                ? uriOrName
+                : FileService.obtenirUriComplete(uriOrName);
 
             // @ts-ignore
-            formData.append('files', { uri: uriFinale, name: meta.nom, type: meta.type });
+            formData.append('files', {
+                uri: finalUri,
+                name: meta.name || `file_${index}`,
+                type: meta.type || 'application/octet-stream'
+            });
         });
 
         if (item.data) {
-            Object.keys(item.data).forEach(key => {
-                formData.append(key, String(item.data![key]));
-            });
+            formData.append('data', JSON.stringify(item.data));
         }
 
         return await api.post(item.endpoint, formData, {
@@ -82,97 +84,113 @@ export const UploadProvider = ({ children }: { children: React.ReactNode }) => {
         });
     }, []);
 
-    const supprimerFichiersSilencieusement = async (uris: string[]) => {
-        await Promise.allSettled(uris.map(u => FileService.supprimerFichier(u)));
+    const deleteFilesSilently = async (uris: string[]) => {
+        await Promise.allSettled(uris.map(u => {
+            if (u && !u.startsWith('http')) {
+                return FileService.supprimerFichier(u);
+            }
+        }));
     };
 
-    const sauvegarderEnLocal = useCallback(async (uris: string[], endpoint: string, data?: Record<string, any>) => {
+    const saveLocally = useCallback(async (uris: string[], endpoint: string, data?: Record<string, any>) => {
         try {
-            const fichiersPersistes = await Promise.all(uris.map(u => FileService.persisterFichier(u)));
-            const actuelle = await chargerDonneesDepuisStockage();
+            const persistedFiles = uris.length > 0
+                ? await Promise.all(uris.map(u => FileService.persisterFichier(u)))
+                : [];
 
-            const nouvelItem: ItemQueue = {
+            const current = await loadDataFromStorage();
+
+            const newItem: QueueItem = {
                 id: `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-                uris: fichiersPersistes.map(f => f.nom), // Stocke uniquement les noms
+                uris: persistedFiles.map(f => f.nom),
                 endpoint,
-                metadonnees: fichiersPersistes.map(f => ({ nom: f.nom, taille: f.taille, type: f.type })),
+                metadata: persistedFiles.map(f => ({ name: f.nom, size: f.taille, type: f.type })),
                 data
             };
 
-            await sauvegarderEtActualiser([...actuelle, nouvelItem]);
-            Toast.show({ type: 'info', text1: 'Sauvegardé localement' });
+            await saveAndRefresh([...current, newItem]);
+            Toast.show({ type: 'info', text1: 'Saved locally (Offline)' });
         } catch (error) {
-            Toast.show({ type: 'error', text1: 'Erreur stockage', text2: getErrorMessage(error) });
+            Toast.show({ type: 'error', text1: 'Local storage error', text2: getErrorMessage(error) });
         }
-    }, [chargerDonneesDepuisStockage, sauvegarderEtActualiser]);
+    }, [loadDataFromStorage, saveAndRefresh]);
 
-    const ajouterALaQueue = async (uri: string | string[], endpoint: string, data?: Record<string, any>) => {
-        const uris = Array.isArray(uri) ? uri : [uri];
-        if (estEnLigne) {
+    const addToQueue = async (uri: string | string[], endpoint: string, data?: Record<string, any>) => {
+        const uris = Array.isArray(uri) ? uri.filter(u => !!u) : (uri ? [uri] : []);
+
+        if (isOnline) {
             setIsUploading(true);
             try {
-                const tempItem: ItemQueue = {
-                    id: 'temp', uris, endpoint,
-                    metadonnees: uris.map(u => ({ nom: u.split('/').pop() || 'img.jpg', taille: 0, type: 'image/jpeg' })),
+                const tempItem: QueueItem = {
+                    id: 'temp',
+                    uris,
+                    endpoint,
+                    metadata: uris.map(u => ({
+                        name: u.split('/').pop() || 'upload',
+                        size: 0,
+                        type: 'application/octet-stream'
+                    })),
                     data
                 };
-                await envoyerFichiers(tempItem);
-                Toast.show({ type: 'success', text1: 'Envoyé avec succès !' });
+                await sendFiles(tempItem);
+                Toast.show({ type: 'success', text1: 'Data sent successfully' });
             } catch (error) {
-                console.warn("Échec direct, bascule local:", getErrorMessage(error));
-                await sauvegarderEnLocal(uris, endpoint, data);
+                await saveLocally(uris, endpoint, data);
             } finally {
                 setIsUploading(false);
             }
         } else {
-            await sauvegarderEnLocal(uris, endpoint, data);
+            await saveLocally(uris, endpoint, data);
         }
     };
 
-    const supprimerItem = async (id: string) => {
-        const actuelle = await chargerDonneesDepuisStockage();
-        const item = actuelle.find(i => i.id === id);
-        if (item) await supprimerFichiersSilencieusement(item.uris);
-        await sauvegarderEtActualiser(actuelle.filter(i => i.id !== id));
+    const removeItem = async (id: string) => {
+        const current = await loadDataFromStorage();
+        const item = current.find(i => i.id === id);
+        if (item) await deleteFilesSilently(item.uris);
+        await saveAndRefresh(current.filter(i => i.id !== id));
     };
 
-    const traiterQueue = useCallback(async () => {
-        if (isSyncing || !estEnLigne) return;
+    const processQueue = useCallback(async () => {
+        if (isSyncing || !isOnline) return;
         setIsSyncing(true);
-        const actuelle = await chargerDonneesDepuisStockage();
-        if (actuelle.length === 0) { setIsSyncing(false); return; }
+        const current = await loadDataFromStorage();
+        if (current.length === 0) { setIsSyncing(false); return; }
 
-        const itemsEchoues: ItemQueue[] = [];
-        let succesCount = 0;
+        const failedItems: QueueItem[] = [];
+        let successCount = 0;
 
-        for (const item of actuelle) {
+        for (const item of current) {
             try {
-                await envoyerFichiers(item);
-                await supprimerFichiersSilencieusement(item.uris);
-                succesCount++;
+                await sendFiles(item);
+                await deleteFilesSilently(item.uris);
+                successCount++;
             } catch (error) {
-                itemsEchoues.push(item);
-                console.error(`Erreur synchro ${item.id}:`, getErrorMessage(error));
+                failedItems.push(item);
             }
         }
 
-        await sauvegarderEtActualiser(itemsEchoues);
-        if (succesCount > 0) Toast.show({ type: 'success', text1: 'Synchro réussie' });
+        await saveAndRefresh(failedItems);
+        if (successCount > 0) Toast.show({ type: 'success', text1: `${successCount} item(s) synchronized` });
         setIsSyncing(false);
-    }, [chargerDonneesDepuisStockage, envoyerFichiers, estEnLigne, isSyncing, sauvegarderEtActualiser]);
+    }, [loadDataFromStorage, sendFiles, isOnline, isSyncing, saveAndRefresh]);
 
-    // useEffect(() => { if (estEnLigne) traiterQueue(); }, [estEnLigne, traiterQueue]);
+    useEffect(() => {
+        if (isOnline && queue.length > 0) {
+            processQueue();
+        }
+    }, [isOnline]);
 
-    const viderLaQueue = async () => {
-        const actuelle = await chargerDonneesDepuisStockage();
-        for (const item of actuelle) await supprimerFichiersSilencieusement(item.uris);
-        await sauvegarderEtActualiser([]);
-        Toast.show({ type: 'success', text1: 'File d\'attente vidée' });
+    const clearQueue = async () => {
+        const current = await loadDataFromStorage();
+        for (const item of current) await deleteFilesSilently(item.uris);
+        await saveAndRefresh([]);
+        Toast.show({ type: 'success', text1: 'Queue cleared' });
     };
 
     return (
         <UploadContext.Provider value={{
-            ajouterALaQueue, isSyncing, isUploading, tailleQueue, queue, reessayerTout: traiterQueue, viderLaQueue, supprimerItem
+            addToQueue, isSyncing, isUploading, queueSize, queue, retryAll: processQueue, clearQueue, removeItem
         }}>
             {children}
         </UploadContext.Provider>
@@ -181,6 +199,6 @@ export const UploadProvider = ({ children }: { children: React.ReactNode }) => {
 
 export const useUpload = () => {
     const context = useContext(UploadContext);
-    if (!context) throw new Error("useUpload doit être utilisé dans un UploadProvider");
+    if (!context) throw new Error("useUpload must be used within an UploadProvider");
     return context;
 };

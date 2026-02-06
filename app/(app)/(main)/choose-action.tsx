@@ -3,10 +3,9 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
 import { FlatList, View } from "react-native";
 
-import { Text } from "@/components/ui/text";
-
 import BackButton from "@/components/shared/back-button";
 import { Button } from "@/components/ui/button";
+import { Text } from "@/components/ui/text";
 import { constants } from "@/lib/constants";
 
 export default function ChooseActionScreen() {
@@ -21,7 +20,7 @@ export default function ChooseActionScreen() {
   const filteredActions = category?.actions.filter(
     (action) => {
       if (numeroLot) {
-        return action.requireNumLot === true || action.requireNumLot === false;
+        return action.requireNumLot === true;
       }
       return action.requireNumLot === false;
     }
@@ -36,7 +35,7 @@ export default function ChooseActionScreen() {
         data={filteredActions}
         keyExtractor={(item) => item.id}
         numColumns={2}
-        contentContainerClassName="pb-12"
+        contentContainerClassName="pb-12 px-4"
         columnWrapperClassName="gap-4"
         ItemSeparatorComponent={() => <View className="h-4" />}
         ListHeaderComponent={
@@ -45,7 +44,7 @@ export default function ChooseActionScreen() {
               {category.title}
             </Text>
             <View className="self-center px-4 py-1 mt-2">
-              <Text className="text-foreground font-medium text-sm">
+              <Text className="text-foreground font-medium text-sm text-center">
                 {numeroLot ? `Lot : ${numeroLot}` : "Opérations générales"}
               </Text>
             </View>
